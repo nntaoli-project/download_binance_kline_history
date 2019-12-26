@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	beginTime    = time.Date(2017, 8, 18, 0, 0, 0, 0, time.Local) //开始时间2019年8月18日,需自行修改
+	beginTime    = time.Date(2017, 12, 18, 0, 0, 0, 0, time.Local) //开始时间2019年8月18日,需自行修改
 	klinePeriod  = goex.KLINE_PERIOD_1MIN                         //see: github.com/nntaoli-project/GoEx/Const.go
-	currencyPair = goex.BTC_USDT
+	currencyPair = goex.LTC_USDT
 
 	csvWriterM map[string]*csv.Writer
 	fileM      map[string]*os.File
@@ -45,7 +45,7 @@ func csvWriter(timestamp int64) *csv.Writer {
 	case goex.KLINE_PERIOD_1DAY:
 		p = "1day"
 	}
-	fileName := fmt.Sprintf("binance_kline_%s_%s.csv", p, t)
+	fileName := fmt.Sprintf("binance_kline_%s_%s_%s.csv", currencyPair.ToLower().ToSymbol(""), p, t)
 
 	w := csvWriterM[fileName]
 	if w != nil {
