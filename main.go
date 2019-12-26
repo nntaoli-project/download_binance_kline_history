@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	beginTime    = time.Date(2019, 8, 1, 0, 0, 0, 0, time.Local) //开始时间2019年8月1日
-	klinePeriod  = goex.KLINE_PERIOD_1MIN                        //see: github.com/nntaoli-project/GoEx/Const.go
+	beginTime    = time.Date(2017, 8, 18, 0, 0, 0, 0, time.Local) //开始时间2019年8月18日,需自行修改
+	klinePeriod  = goex.KLINE_PERIOD_1MIN                         //see: github.com/nntaoli-project/GoEx/Const.go
 	currencyPair = goex.BTC_USDT
 
 	csvWriterM map[string]*csv.Writer
@@ -112,6 +112,7 @@ func main() {
 			klines, err := ba.GetKlineRecords(currencyPair, klinePeriod, 1000, since)
 			if err != nil {
 				log.Println(err)
+				interval.Reset(200 * time.Millisecond)
 				continue
 			}
 
