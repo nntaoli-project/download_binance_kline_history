@@ -16,7 +16,7 @@ import (
 
 var (
 	beginTime    = time.Date(2017, 12, 18, 0, 0, 0, 0, time.Local) //开始时间2019年8月18日,需自行修改
-	klinePeriod  = goex.KLINE_PERIOD_1MIN                         //see: github.com/nntaoli-project/GoEx/Const.go
+	klinePeriod  = goex.KLINE_PERIOD_1MIN                          //see: github.com/nntaoli-project/GoEx/Const.go
 	currencyPair = goex.LTC_USDT
 
 	csvWriterM map[string]*csv.Writer
@@ -89,16 +89,21 @@ func main() {
 		log.Println("end")
 	}()
 
-	ba := binance.NewWithConfig(&goex.APIConfig{
-		//HttpClient: http.DefaultClient,
-		HttpClient: &http.Client{
-			Transport: &http.Transport{
-				Proxy: func(request *http.Request) (*url.URL, error) {
-					return url.Parse("socks5://127.0.0.1:1080") //ss proxy
-				},
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	proxyUrl := os.Getenv("HTTPS_PROXY")
+	if proxyUrl != "" {
+		httpClient.Transport = &http.Transport{
+			Proxy: func(request *http.Request) (*url.URL, error) {
+				return url.Parse(proxyUrl) //ss proxy
 			},
-			Timeout: 10 * time.Second,
-		},
+		}
+	}
+
+	ba := binance.NewWithConfig(&goex.APIConfig{
+		HttpClient: httpClient,
 	})
 
 	since := int(beginTime.Unix()) * 1000
