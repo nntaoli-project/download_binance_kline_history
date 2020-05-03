@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	goex "github.com/nntaoli-project/GoEx"
 	"github.com/nntaoli-project/GoEx/binance"
@@ -21,6 +22,8 @@ var (
 
 	csvWriterM map[string]*csv.Writer
 	fileM      map[string]*os.File
+
+	vnpy = flag.Bool("vnpy", false, "output vnpy kline csv")
 )
 
 func init() {
@@ -62,10 +65,17 @@ func csvWriter(timestamp int64) *csv.Writer {
 	csvWriterM[fileName] = w
 	fileM[fileName] = f
 
+	if *vnpy {
+		//write csv header
+		w.Write([]string{"open_time", "open", "high", "low", "close", "volume", "open_interest"})
+	}
+
 	return w
 }
 
 func main() {
+	flag.Parse()
+
 	log.Println("begin download kline")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -95,6 +105,7 @@ func main() {
 
 	proxyUrl := os.Getenv("HTTPS_PROXY")
 	if proxyUrl != "" {
+		log.Println("proxy:", proxyUrl)
 		httpClient.Transport = &http.Transport{
 			Proxy: func(request *http.Request) (*url.URL, error) {
 				return url.Parse(proxyUrl) //ss proxy
@@ -122,8 +133,18 @@ func main() {
 			}
 
 			for _, k := range klines {
-				csvWriter(k.Timestamp).Write([]string{fmt.Sprint(k.Timestamp), goex.FloatToString(k.High, 8),
-					goex.FloatToString(k.Low, 8), goex.FloatToString(k.Open, 8), goex.FloatToString(k.Close, 8), goex.FloatToString(k.Vol, 8)})
+				if *vnpy {
+					csvWriter(k.Timestamp).Write([]string{
+						time.Unix(k.Timestamp, 0).Format("2006-01-02 15:04:05"),
+						goex.FloatToString(k.Open, 8),
+						goex.FloatToString(k.High, 8),
+						goex.FloatToString(k.Low, 8),
+						goex.FloatToString(k.Close, 8),
+						goex.FloatToString(k.Vol, 8)})
+				} else {
+					csvWriter(k.Timestamp).Write([]string{fmt.Sprint(k.Timestamp), goex.FloatToString(k.High, 8),
+						goex.FloatToString(k.Low, 8), goex.FloatToString(k.Open, 8), goex.FloatToString(k.Close, 8), goex.FloatToString(k.Vol, 8)})
+				}
 			}
 
 			since = int(klines[len(klines)-1].Timestamp)*1000 + 1
